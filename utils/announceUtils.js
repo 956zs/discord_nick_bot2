@@ -42,7 +42,6 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(0xEFAFEF)
             .setTitle(announcementTitle)
-            .setDescription(totalCount)
             .setAuthor({
                 name: '匿名大安發文平台',
                 iconURL: 'https://media.discordapp.net/attachments/1248203795045810226/1248203875664527400/AUD1A3pYVpFqu4T1sF76kFCaaqh9q0Mu.png?ex=6662cff2&is=66617e72&hm=7ee6fefe26e4d581522d90dd169617597b454e9be39333264daed7b90962da4f&=&format=webp&quality=lossless'
