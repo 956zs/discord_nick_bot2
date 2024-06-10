@@ -20,7 +20,7 @@ module.exports = {
                 await backupPost(interaction.client, interaction.user, postContent);
 
                 console.log('Sending post for review...');
-                await reviewPost(interaction.client, postContent);
+                await reviewPost(interaction.client, postContent, interaction.user.id);
 
                 console.log('Replying to user...');
                 await interaction.editReply({ content: '感謝您的回覆，我們會盡快審核。' });

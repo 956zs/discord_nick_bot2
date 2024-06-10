@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "canvas": "^2.11.2",
     "commandkit": "^0.1.10",
     "discord.js": "^14.15.2",
     "dotenv": "^16.4.5",

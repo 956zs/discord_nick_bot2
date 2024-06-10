@@ -3,6 +3,14 @@ const config = require('./config/config');
 const fs = require('fs');
 const path = require('path');
 
+const { 
+    DefaultWebSocketManagerOptions: { 
+        identifyProperties 
+    } 
+} = require("@discordjs/ws");
+
+identifyProperties.browser = "Discord Android"; // or "Discord iOS"
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -15,11 +23,9 @@ const client = new Client({
 
 client.commands = new Map();
 
-// 加载指令
 const commandHandler = require('./handlers/commandHandler');
 commandHandler(client);
 
-// 加载事件
 const eventFiles = fs.readdirSync(path.resolve(__dirname, './events')).filter(file => file.endsWith('.js'));
 
 for (const file of eventFiles) {
@@ -31,7 +37,6 @@ for (const file of eventFiles) {
     }
 }
 
-// InteractionCreate 事件监听器
 client.on(Events.InteractionCreate, async interaction => {
     if (interaction.isModalSubmit()) {
         try {

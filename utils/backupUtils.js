@@ -28,9 +28,9 @@ module.exports = {
             embed.addFields({ name: `Part ${index + 1}/${totalChunks}`, value: `\`\`\`\n${chunk}\`\`\`` });
         });
 
-        embed.addFields({ name: 'User ID', value: user.id, inline: true })
-            .addFields({ name: 'Username', value: user.username, inline: true })
-            .addFields({ name: 'Tag', value: user.tag, inline: true })
+        embed.addFields({ name: 'User ID', value: `\`${user.id}\``, inline: true })
+            .addFields({ name: 'Username', value: `\`${user.username}\``, inline: true })
+            .addFields({ name: 'Tag', value: `\`${user.tag}\``, inline: true })
             .addFields({ name: 'Discriminator', value: user.discriminator, inline: true })
             .setTimestamp();
 

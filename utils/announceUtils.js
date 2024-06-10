@@ -2,14 +2,9 @@ const { announcementChannelId } = require('../config/config');
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { createCanvas, registerFont } = require('canvas');
 
-function chunkString(str, size) {
-    const chunks = [];
-    for (let i = 0; i < str.length; i += size) {
-        chunks.push(str.slice(i, i + size));
-    }
-    return chunks;
-}
+registerFont(path.resolve(__dirname, '../fonts/SourceHanSansCN-Regular.otf'), { family: 'Source Han Sans' });
 
 function readTotalCount() {
     const data = fs.readFileSync(path.resolve(__dirname, '../data/totalCount.json'));
@@ -21,6 +16,78 @@ function writeTotalCount(totalCount) {
     const json = JSON.stringify({ totalCount }, null, 2);
     fs.writeFileSync(path.resolve(__dirname, '../data/totalCount.json'), json);
 }
+
+function wrapText(ctx, text, maxWidth) {
+    const words = text.split(' ');
+    let lines = [];
+    let currentLine = words[0];
+
+    for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const width = ctx.measureText(currentLine + ' ' + word).width;
+        if (width < maxWidth) {
+            currentLine += ' ' + word;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine);
+    return lines;
+}
+
+function textToImage(text, filePath, totalCount) {
+    const width = 1080;
+    const height = 1350;
+    const margin = 40; // Increased margin for inner content
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    // 背景
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, width, height);
+
+    // 字體
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    let fontSize = 40;
+    ctx.font = `${fontSize}px "Source Han Sans"`;
+
+    let lines = wrapText(ctx, text, width - 2 * margin);
+
+    // Adjust font size if text is too large
+    while (lines.length * fontSize > height - 2 * margin && fontSize > 10) {
+        fontSize--;
+        ctx.font = `${fontSize}px "Source Han Sans"`;
+        lines = wrapText(ctx, text, width - 2 * margin);
+    }
+
+    const lineHeight = fontSize * 1.5;
+    const yStart = margin + (height - 2 * margin - lines.length * lineHeight) / 2;
+
+    lines.forEach((line, index) => {
+        ctx.fillText(line, width / 2, yStart + index * lineHeight);
+    });
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '40px "Source Han Sans"';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('匿名大安', margin, margin);
+    ctx.fillText(`編號: ${totalCount}`, margin, margin + 60);
+
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const buffer = canvas.toBuffer('image/png');
+    fs.writeFileSync(filePath, buffer);
+}
+
+
 
 module.exports = {
     async announcePost(client, postContent) {
@@ -34,7 +101,7 @@ module.exports = {
         totalCount++;
         writeTotalCount(totalCount);
 
-        const chunks = chunkString(postContent, 990);
+        const chunks = postContent.match(/[\s\S]{1,990}/g) || [];
         const totalChunks = chunks.length;
 
         const announcementTitle = `匿名大安有新貼文囉-${date}${count > 1 ? `-${count}` : ''}`;
@@ -56,10 +123,15 @@ module.exports = {
         const message = await announcementChannel.send({ embeds: [embed] });
 
         try {
-            await message.crosspost();
+            // await message.crosspost();
             console.log('Announcement post successfully crossposted.');
         } catch (error) {
             console.error('Error crossposting the announcement post:', error);
         }
+
+        // 保存文字為圖片
+        const filePath = path.resolve(__dirname, `../images/post_${totalCount}.png`);
+        textToImage(postContent, filePath, totalCount);
+        console.log(`Image saved to ${filePath}`);
     },
 };
